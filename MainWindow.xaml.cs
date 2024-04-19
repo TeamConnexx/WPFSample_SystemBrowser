@@ -1,8 +1,11 @@
-﻿using Auth0.OidcClient;
+﻿using System;
+using Auth0.OidcClient;
 using IdentityModel.OidcClient;
 using IdentityModel.OidcClient.Browser;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Windows;
 
@@ -46,9 +49,8 @@ namespace WPFSample
                 ClientId = clientId,//application clientId
                 Browser = new SystemBrowser(),
                 RedirectUri = "http://localhost:8888",
-                PostLogoutRedirectUri = "http://localhost:8888/logout"
+                PostLogoutRedirectUri = "http://localhost:8888/logout",
             });
-
 
             //var extraParameters = new Dictionary<string, string>();
 

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using IdentityModel.OidcClient.Browser;
@@ -50,6 +52,7 @@ internal class SystemBrowser : IBrowser
                     return result;
                 }
 
+                
                 //set result response url
                 result.Response = context.Request.Url.AbsoluteUri;
 
@@ -63,7 +66,12 @@ internal class SystemBrowser : IBrowser
                 else if (options.StartUrl.Contains("/logout") && context.Request.Url.AbsoluteUri == options.EndUrl)
                 {
                     displayMessage = SUCCESSFUL_LOGOUT_MESSAGE;
+
                     result.ResultType = BrowserResultType.Success;
+                    var storedCookie = context.Request.Cookies[0];
+                    var cookie = new Cookie(storedCookie.Name, "");
+                    cookie.Expires = DateTime.Now.AddDays(-1);
+                    context.Response.SetCookie(cookie);
                 }
                 else
                 {
@@ -71,15 +79,46 @@ internal class SystemBrowser : IBrowser
                     result.ResultType = BrowserResultType.UnknownError;
                 }
 
+
                 //return message to be displayed in the browser
                 Byte[] buffer = System.Text.Encoding.UTF8.GetBytes(displayMessage);
                 context.Response.ContentLength64 = buffer.Length;
                 context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                
                 context.Response.OutputStream.Close();
                 context.Response.Close();
                 _httpListener.Stop();
             }
         }
         return result;
+    }
+
+    private async void Cookie()
+    {
+
+        CookieContainer cookieContainer = new CookieContainer();
+
+        // Create a request to localhost
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://localhost:3000");
+
+        // Assign the CookieContainer to the request
+        request.CookieContainer = cookieContainer;
+
+        // Send the request and get the response
+        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+        // Retrieve cookies for localhost from the CookieContainer
+        CookieCollection cookies = cookieContainer.GetCookies(new Uri("http://localhost:8888"));
+
+        foreach (Cookie cookie in cookies)
+        {
+            Console.WriteLine("Name: " + cookie.Name);
+            Console.WriteLine("Value: " + cookie.Value);
+            Console.WriteLine("Domain: " + cookie.Domain);
+            Console.WriteLine();
+        }
+
+        // Close the response
+        response.Close();
     }
 }
